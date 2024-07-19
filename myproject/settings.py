@@ -73,6 +73,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
+import os
+
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -80,7 +86,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'C:\\Users\\Jayant\\Desktop\\Parul\\myproject\\logs\\django_debug.log',
+            'filename': os.path.join(LOG_DIR, 'django_debug.log'),
         },
     },
     'loggers': {
@@ -93,6 +99,7 @@ LOGGING = {
 }
 
 
+
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -100,8 +107,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'Feedback_db',
-        'USER': 'Jayant07',
-        'PASSWORD': 'Jayantpatil@07',
+        'USER': 'root',
+        'PASSWORD': 'manglesh2004',
         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     }

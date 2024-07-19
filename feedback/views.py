@@ -101,8 +101,8 @@ def thank_you(request, feedback_id):
 def fetch_data_from_db():
     # Database connection details
     config = {
-        'user': 'Jayant07',
-        'password': 'Jayantpatil@07',
+        'user': 'root',
+        'password': 'manglesh2004',
         'host': 'localhost',
         'database': 'feedback_db'
     }
@@ -236,3 +236,58 @@ def chatbot_api(request):
             return JsonResponse({"error": str(e)}, status=500)
     else:
         return JsonResponse({"error": "Invalid request method"}, status=400)
+
+
+@csrf_exempt
+def process_chat_emotions(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)  # Load the JSON data
+            chat_messages = data.get('chat_messages', [])  # Retrieve chat_messages
+
+            # Ensure chat_messages is a list
+            if not isinstance(chat_messages, list):
+                return JsonResponse({'status': 'failed', 'message': 'Invalid chat messages format'}, status=400)
+            
+            # Retrieve the last 3 messages
+            last_three_messages = chat_messages[-3:]
+
+            # Combine all elements of the last 3 messages into a single string
+            combined_messages = " ".join(last_three_messages)
+
+            # Analyze the emotion of the combined messages
+            emotion = get_emotion(combined_messages)
+
+            # Establishing a connection to insert data into the table
+            config = {
+                'user': 'root',
+                'password': 'manglesh2004',
+                'host': 'localhost',
+                'database': 'feedback_db'
+            }
+            conn = mysql.connector.connect(**config)
+            cursor = conn.cursor()
+
+            # Insert the combined messages and its emotion into the table
+            cursor.execute(
+                "INSERT INTO chat_emotions (response_text, emotion) VALUES (%s, %s)",
+                (combined_messages, emotion)
+            )
+
+            # Commit the transaction and close the connection
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            return JsonResponse({'status': 'success'}, status=200)
+
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return JsonResponse({'status': 'failed', 'message': 'Database error'}, status=500)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'failed', 'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status': 'failed', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'failed', 'message': 'Invalid request'}, status=400)

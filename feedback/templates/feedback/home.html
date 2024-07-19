@@ -207,6 +207,23 @@
         top: 18px;
     }
 
+    /* Style for the chat button */
+    #clear-chat {
+        background-color: #f1594e; /* Red background */
+        color: white; /* White text */
+        border: none;
+        border-radius: 5px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    /* Add a hover effect */
+    #clear-chat:hover {
+        background-color: hsl(0, 75%, 42%); /* Darker red */
+    }
+
     .modal {
         position: fixed;
         left: 0;
@@ -271,6 +288,7 @@
         <button id="addExtra"><i class="fa fa-plus"></i></button>
         <input id="chat-message" placeholder="Enter Your Message" type="text" />
         <i class="send far fa-paper-plane"></i>
+        <button id="clear-chat"><i class="fa fa-trash"></i> Clear Chat</button>
     </div>
 </div>
 <div class="chat-button"><span></span></div>
@@ -284,6 +302,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+        let userMessages = []; 
 
         function getCookie(name) {
             let cookieValue = null;
@@ -320,18 +339,30 @@
             $('.chat-button').css({ "display": "block" });
             $('.chat-box').css({ "visibility": "hidden" });
         });
-    
-        $("#addExtra").on("click", function() {
-            $(".modal").toggleClass("show-modal");
-        });
-    
-        $(".modal-close-button").on("click", function() {
-            $(".modal").toggleClass("show-modal");
+
+        $('#clear-chat').on('click', function() {
+        
+            $.ajax({
+                type: "POST",
+                url: "/process_chat_emotions/",
+                data: JSON.stringify({ chat_messages: userMessages }),
+                contentType: "application/json",
+                success: function(response) {
+                    console.log("Emotions processed and saved.");
+                    userMessages = []; // Clear messages after processing
+                    $(".chat-box-body").empty(); // Clear the chat window
+                },
+                error: function(error) {
+                    console.error("Error:", error);
+                }
+            });
         });
     
         function sendMessage() {
             const message = $("#chat-message").val();
             if (message) {
+                userMessages.push(message);
+
                 $(".chat-box-body").append(
                     `<div class="chat-box-body-send"><p>${message}</p><span>${new Date().toLocaleTimeString()}</span></div>`
                 );
@@ -359,13 +390,13 @@
             if (e.which === 13) { 
                 sendMessage();
                 e.preventDefault(); 
+                $("#chat-message").val('');
             }
         });
     
         $(".send").on("click", function() {
             sendMessage();
         });
-    
     });
 </script>
 
